@@ -1,9 +1,36 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../lib/sort.h"
 
-#define MAX_LINES 1000
-#define MAX_LENGTH 100
+void manageFile(char *inputFile)
+{
+    char outputFile[] = "sorted.csv";
+    char **numbers = malloc(MAX_LINES * sizeof(char *));
+
+    if (numbers == NULL) {
+        perror("Memory allocation failed");
+        exit(84);
+    }
+
+    for (int i = 0; i < MAX_LINES; i++) {
+        numbers[i] = malloc(MAX_LENGTH * sizeof(char));
+        if (numbers[i] == NULL) {
+            perror("Memory allocation failed");
+            freeMemory(numbers, i);
+            exit(84);
+        }
+    }
+
+    FILE *inFile = openFile(inputFile, "r");
+    int count = readNumbers(inFile, numbers);
+
+    qsort(numbers, count, sizeof(char *), compareNumbers);
+    writeFile(outputFile, numbers, count);
+    freeMemory(numbers, count);
+
+    printf("Sorting completed. Output written to %s\n", outputFile);
+}
 
 int compareNumbers(const void *a, const void *b)
 {
@@ -17,14 +44,6 @@ int compareNumbers(const void *a, const void *b)
         return len1 - len2;
     }
     return strcmp(num1, num2);
-}
-
-void usageSort(int n, char *str[])
-{
-    if (n != 2) {
-        printf("How to use:\n\n%s <input.csv>\n", str[0]);
-        exit(84);
-    }
 }
 
 FILE *openFile(char *filename, const char *mode)
@@ -71,40 +90,4 @@ void freeMemory(char **numbers, int count)
         free(numbers[i]);
     }
     free(numbers);
-}
-
-void manageFile(char *inputFile)
-{
-    char outputFile[] = "sorted.csv";
-    char **numbers = malloc(MAX_LINES * sizeof(char *));
-
-    if (numbers == NULL) {
-        perror("Memory allocation failed");
-        exit(84);
-    }
-
-    for (int i = 0; i < MAX_LINES; i++) {
-        numbers[i] = malloc(MAX_LENGTH * sizeof(char));
-        if (numbers[i] == NULL) {
-            perror("Memory allocation failed");
-            freeMemory(numbers, i);
-            exit(84);
-        }
-    }
-
-    FILE *inFile = openFile(inputFile, "r");
-    int count = readNumbers(inFile, numbers);
-
-    qsort(numbers, count, sizeof(char *), compareNumbers);
-    writeFile(outputFile, numbers, count);
-    freeMemory(numbers, count);
-    printf("Sorting completed. Output written to %s\n", outputFile);
-}
-
-int main(int argc, char *argv[])
-{
-    usageSort(argc, argv);
-    manageFile(argv[1]);
-
-    return 0;
 }
