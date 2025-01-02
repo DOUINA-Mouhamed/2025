@@ -6,24 +6,11 @@
 void manageFile(char *inputFile)
 {
     char outputFile[] = "sorted.csv";
-    char **numbers = malloc(MAX_LINES * sizeof(char *));
-
-    if (numbers == NULL) {
-        perror("Memory allocation failed");
-        exit(84);
-    }
-
-    for (int i = 0; i < MAX_LINES; i++) {
-        numbers[i] = malloc(MAX_LENGTH * sizeof(char));
-        if (numbers[i] == NULL) {
-            perror("Memory allocation failed");
-            freeMemory(numbers, i);
-            exit(84);
-        }
-    }
+    char **numbers = NULL;
+    int count = 0;
 
     FILE *inFile = openFile(inputFile, "r");
-    int count = readNumbers(inFile, numbers);
+    numbers = readNumbersDynamic(inFile, &count);
 
     qsort(numbers, count, sizeof(char *), compareNumbers);
     writeFile(outputFile, numbers, count);
@@ -56,21 +43,39 @@ FILE *openFile(char *filename, const char *mode)
     return file;
 }
 
-int readNumbers(FILE *file, char **numbers)
+char **readNumbersDynamic(FILE *file, int *count)
 {
-    int count = 0;
+    int capacity = 1000; // Initial capacity
+    char **numbers = malloc(capacity * sizeof(char *));
+    if (numbers == NULL) {
+        perror("Memory allocation failed");
+        exit(84);
+    }
 
-    while (fscanf(file, "%99s", numbers[count]) != EOF) {
-        count++;
-        if (count >= MAX_LINES) {
-            printf("Error: Exceeded maximum line limit (%d).\n", MAX_LINES);
-            fclose(file);
+    *count = 0;
+    char buffer[MAX_LENGTH];
+    while (fscanf(file, "%99s", buffer) != EOF) {
+        if (*count >= capacity) {
+            capacity *= 2; // Double the capacity
+            numbers = realloc(numbers, capacity * sizeof(char *));
+            if (numbers == NULL) {
+                perror("Memory reallocation failed");
+                exit(84);
+            }
+        }
+
+        numbers[*count] = malloc((strlen(buffer) + 1) * sizeof(char));
+        if (numbers[*count] == NULL) {
+            perror("Memory allocation failed");
             exit(84);
         }
+
+        strcpy(numbers[*count], buffer);
+        (*count)++;
     }
 
     fclose(file);
-    return count;
+    return numbers;
 }
 
 void writeFile(char *filename, char **numbers, int n)

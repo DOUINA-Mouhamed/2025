@@ -12,35 +12,23 @@ int compareNumbersDescending(const void *a, const void *b)
     size_t len2 = strlen(num2);
 
     if (len1 != len2) {
-        return len2 - len1;
+        return len2 - len1; // Descending order by length
     }
-    return strcmp(num2, num1);
+    return strcmp(num2, num1); // Descending lexicographical order
 }
 
 void manageFileReverse(char *inputFile)
 {
     char outputFile[] = "reverse_sorted.csv";
-    char **numbers = malloc(MAX_LINES * sizeof(char *));
-
-    if (numbers == NULL) {
-        perror("Memory allocation failed");
-        exit(84);
-    }
-
-    for (int i = 0; i < MAX_LINES; i++) {
-        numbers[i] = malloc(MAX_LENGTH * sizeof(char));
-        if (numbers[i] == NULL) {
-            perror("Memory allocation failed");
-            freeMemory(numbers, i);
-            exit(84);
-        }
-    }
+    char **numbers = NULL;
+    int count = 0;
 
     FILE *inFile = openFile(inputFile, "r");
-    int count = readNumbers(inFile, numbers);
+    numbers = readNumbersDynamic(inFile, &count); // Dynamically read lines
 
-    qsort(numbers, count, sizeof(char *), compareNumbersDescending);
-    writeFile(outputFile, numbers, count);
-    freeMemory(numbers, count);
+    qsort(numbers, count, sizeof(char *), compareNumbersDescending); // Sort in reverse order
+    writeFile(outputFile, numbers, count); // Write sorted output
+    freeMemory(numbers, count); // Free allocated memory
+
     printf("Reverse sorting completed. Output written to %s\n", outputFile);
 }

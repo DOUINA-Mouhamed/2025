@@ -19,6 +19,7 @@ all: $(EXEC)
 # Build executable
 $(EXEC): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^
+	rm -f $(OBJS) # Automatically delete object files
 
 # Compile each source file into an object file
 $(SRCDIR)/%.o: $(SRCDIR)/%.c $(LIBDIR)/sort.h
@@ -26,7 +27,7 @@ $(SRCDIR)/%.o: $(SRCDIR)/%.c $(LIBDIR)/sort.h
 
 # Clean build files
 clean:
-	rm -f $(SRCDIR)/*.o $(EXEC)
+	rm -f $(EXEC)
 
 # PHONY targets
 .PHONY: all clean
